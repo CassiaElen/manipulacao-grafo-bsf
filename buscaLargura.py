@@ -47,6 +47,5 @@ grafo = [
 ]
 
 
-
 caminho = bfs_menor_caminho_matriz(grafo, 5, 3)
 print(caminho)

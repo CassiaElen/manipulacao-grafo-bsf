@@ -19,10 +19,18 @@ class TADGrafo:
         """ Verifica se existe uma determinada aresta. """
         if(self.grafo[V1,V2] == 1):
             print("Existe Aresta!")
+        else:
+            print("Não existe aresta!")
     
     def VerticeAdjacente(self, vertice):
         """ Obtem a lista de vértices adjacentes a um 
         determinado vértice. """
+        n = len(self.grafo)
+        adj = []
+        for i in range(n):
+            if self.grafo[vertice][i] == 1:
+                adj.append(i)
+        return adj
 
     def RetiraAresta(self, V1, V2):
         """ Retira uma aresta do grafo. """
@@ -30,10 +38,16 @@ class TADGrafo:
             print("Não existe aresta para remover!")
         else:
             self.grafo[V1, V2] = 0
+            print("Aresta removida!")
     
-    def LiberaGrafo(self, grafo):
-        """Liberar o espaço ocupado por um grafo.
-            Apagar o grafo ou os vertices todos os vertices?"""
+    def LiberaGrafo(self):
+        """Liberar o espaço ocupado por um grafo."""
+        if(self.grafo is None):
+            print("Não está ocupando espaço")
+        else:
+            self.grafo = None
+            print("Grafo liberado")
+
     
     def ImprimeGrafo(self):
         """ Imprime um grafo. """
@@ -45,3 +59,5 @@ pi.InsereAresta(0,4)
 pi.ImprimeGrafo()
 pi.ExisteAresta(0,4)
 pi.RetiraAresta(2,3)
+pi.LiberaGrafo()
+pi.LiberaGrafo()
