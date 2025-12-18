@@ -1,4 +1,4 @@
 if __name__ == "__main__":
-    import interface
-    app = interface.interface()
+    from interface import Interface
+    app = Interface()
     app.executar()
