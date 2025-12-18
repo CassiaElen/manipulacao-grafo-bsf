@@ -3,6 +3,7 @@ import math
 from tkinter import messagebox
 from random import randint
 from TADGrafo import TADGrafo
+from grafo import bfs, adicionar_aresta, criar_grafo, existe_aresta, remover_aresta, vertice_Adjacente
 
 
 class Interface:
@@ -14,8 +15,8 @@ class Interface:
 
         # TAD Grafo
         self.grafo = None
-        self.mapa_vertices = {}  # indices
-        self.contator_vertices = 0
+        #self.mapa_vertices = {}  # indices
+        #self.contator_vertices = 0
 
         # Barra de Menu
         self.create_menu()
@@ -34,16 +35,17 @@ class Interface:
 
     def create_graph(self, qtd):
         self.clear_graph()
-        self.grafo = TADGrafo(qtd)
+        #self.grafo = TADGrafo(qtd)
+        self.grafo = criar_grafo(qtd)
         self.create_vertices(qtd)
 
     def create_vertices(self, qtd):
         """Cria todos os vertices no canvas em posições aleatorias"""
 
-        for name in range(qtd):
+        for name in range(1, qtd+1):
 
-            self.mapa_vertices[name] = self.contador_vertices
-            self.contador_vertices += 1
+            #self.mapa_vertices[name] = self.contador_vertices
+            #self.contador_vertices += 1
 
             raio = 20  # tamanho fixo do vertice
 
@@ -88,11 +90,16 @@ class Interface:
 
     def add_aresta(self, v1, v2):
         """Adiciona uma aresta entre dois vertices"""
-        if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
-            return
+        #if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
+        #    return
 
         # TAD Grafo
-        self.grafo.InsereAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        #self.grafo.InsereAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        n = len(self.grafo)
+        if v1 < 1 or v1 > n or v2 < 1 or v2 > n:
+            return  # vértice inválido
+
+        adicionar_aresta(self.grafo, v1, v2)
 
         x1 = self.vertices[v1]["x"]
         y1 = self.vertices[v1]["y"]
@@ -119,9 +126,12 @@ class Interface:
 
     # ADICIONAR MAIS UM MEIO DE VERIFICAÇÃO
     def check_aresta(self, v1, v2):
-        if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
+        #if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
+        #    return
+        n = len(self.grafo)
+        if v1 < 1 or v1 > n or v2 < 1 or v2 > n:
             return
-
+        
         for aresta in self.arestas:
             if ((aresta["from"] == v1 and aresta["to"] == v2) or
                 (aresta["from"] == v2 and aresta["to"] == v1)):
@@ -137,13 +147,18 @@ class Interface:
                 )
                 break
         
-        self.grafo.ExisteAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        #self.grafo.ExisteAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        existe_aresta(self.grafo, v1, v2)
 
     def remove_aresta(self, v1, v2):
-        if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
+        #if v1 not in self.mapa_vertices or v2 not in self.mapa_vertices:
+        #    return
+        n = len(self.grafo)
+        if v1 < 1 or v1 > n or v2 < 1 or v2 > n:
             return
-
-        self.grafo.RetiraAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        
+        #self.grafo.RetiraAresta(self.mapa_vertices[v1], self.mapa_vertices[v2])
+        remover_aresta(self.grafo, v1, v2)
 
         for aresta in self.arestas[:]:
             if ((aresta["from"] == v1 and aresta["to"] == v2) or
@@ -266,6 +281,8 @@ class Interface:
         menuBar.add_command(label="Verificar Aresta", command=self.check_aresta_dialog)
         menuBar.add_command(label="Remover Aresta", command=self.remove_aresta_dialog)
         menuBar.add_command(label="Vertices adjacentes", command=self.vertices_adjacentes_dialog)
+        menuBar.add_command(label="Busca em Largura", command=self.buscaLarguraBfsDialog)
+        menuBar.add_command(label="Print matriz", command=self.print_matriz_dialog)
         menuBar.add_command(label="Limpar", command=self.clear_graph)
         menuBar.add_command(label="Sair", command=self.janela.quit)
 
@@ -384,13 +401,9 @@ class Interface:
         resultado_label.pack(pady=5)
 
         def verificar():
-            try:
-                v = int(entry1.get())
-            except ValueError:
-                resultado_label.config(text="Digite um número válido")
-                return
-
-            adj = self.grafo.VerticeAdjacente(v)   # retorna lista de vértices
+            v = int(entry1.get())
+            #adj = self.grafo.VerticeAdjacente(v)   # retorna lista de vértices
+            adj = vertice_Adjacente(self.grafo, v)
             if adj:
                 resultado_label.config(text=", ".join(map(str, adj)))
             else:
@@ -402,14 +415,78 @@ class Interface:
             command=verificar,
         ).pack(pady=10)
 
+    def buscaLarguraBfsDialog(self):
+        """Diálogo para mostrar os resultados da busca em largura"""
+        if self.grafo is None:
+            messagebox.showinfo("Atenção", "Crie um grafo primeiro!")
+            return
+        
+        dialog = tk.Toplevel(self.janela)
+        dialog.title("Busca em Largura")
+        dialog.geometry("300x300")
+
+        tk.Label(dialog, text="Inicio").pack(pady=5)
+        entry1 = tk.Entry(dialog)
+        entry1.pack(pady=5)
+        tk.Label(dialog, text="Objetivo").pack(pady=5)
+        entry2 = tk.Entry(dialog)
+        entry2.pack(pady=5)
+        tk.Label(dialog, text="Resultado bfs:").pack(pady=5)
+        resultado_label = tk.Label(dialog, text="Nenhum resultado")
+        resultado_label.pack(pady=5)
+
+        def verificar():
+            inicio = int(entry1.get())
+            objetivo = int(entry2.get())
+            caminho, cores, pais, distancia = bfs(self.grafo, inicio, objetivo, debug=False) 
+            if caminho:
+                resultado_label.config(
+                    text=(
+                        f"caminho: {caminho}\n"
+                        f"Cores: {cores}\n"
+                        f"Pais: {pais}\n"
+                        f"Distancia: {distancia}"
+                    )
+                )
+            else:
+                resultado_label.config(text="Nenhum resultado")
+
+        tk.Button(
+            dialog,
+            text="Verificar",
+            command=verificar,
+        ).pack(pady=10)
+    
+    def print_matriz_dialog(self):
+        """Diálogo para mostrar a matriz"""
+        dialog = tk.Toplevel(self.janela)
+        dialog.title("Matriz")
+        dialog.geometry("300x190")
+
+        tk.Label(dialog, text="Matriz atual:").pack(pady=5)
+        resultado_label = tk.Label(dialog, text="Nenhuma matriz", justify="left")
+        resultado_label.pack(pady=5)
+
+        # monta o texto da matriz
+        if self.grafo is not None:
+            texto = "\n".join(" ".join(map(str, linha)) for linha in self.grafo)
+            resultado_label.config(text=texto)
+
+        tk.Button(
+            dialog,
+            text="Fechar",
+            command=dialog.destroy,
+    ).pack(pady=10)
+
+
     def clear_graph(self):
         """Limpa tudo, grafo e canvas"""
         self.canvas.delete("all")
         self.vertices.clear()
         self.arestas.clear()
         self.vertice_selecionado = None
-        self.mapa_vertices.clear()
-        self.contador_vertices = 0
+        #self.mapa_vertices.clear()
+        #self.contador_vertices = 0
         self.grafo = None
 
     def centralizar_janela(self, w, h):
